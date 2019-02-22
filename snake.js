@@ -1,4 +1,8 @@
-const DIRECTIONS = [37, 38, 39, 40]
+const DIRECTIONS = [37, 38, 39, 40] // 移动方向
+
+/**
+ * 链表节点类
+ */
 class LinkItem {
   constructor(value) {
     this.value = value
@@ -6,6 +10,9 @@ class LinkItem {
   }
 }
 
+/**
+ * 链表类
+ */
 class LinkedList {
   constructor(list = []) {
     this.head = null
@@ -15,86 +22,28 @@ class LinkedList {
     })
   }
 
-  /**
-   * 根据位置, 获取元素
-   * @param number position 
-   */
-  get(position) {
-    if (position >= 0 && position <= this.length) {
-      let current = this.head
-      let index = 0
-      while (index < position && current) {
-        current = current.next
-        index++
-      }
-
-      return current && current.value
-    } else {
-      return null
-    }
-  }
-
-  /**
-   * 清空链表
-   */
-  clear() {
-    this.head = null
-    this.length = 0
-  }
-
-  /**
-   * 从尾部加元素
-   * @param any node 
-   */
   addLast(node) {
-    return this.insert(this.length, node)
+    return this._insert(this.length, node)
   }
 
-  /**
-   * 从头部加元素
-   * @param any node 
-   */
   addFirst(node) {
-    return this.insert(0, node)
+    return this._insert(0, node)
   }
 
-  /**
-   * 从尾部删元素
-   */
   removeLast() {
-    return this.removeAt(this.length - 1)
+    return this._removeAt(this.length - 1)
   }
 
-  /**
-   * 从头部删元素
-   */
   removeFirst() {
-    return this.removeAt(0)
+    return this._removeAt(0)
   }
 
-  /**
-   * 根据位置删元素
-   * @param number position 
-   */
-  removeAt(position) {
-    const node = this.get(position)
-    return this.remove(node)
+  _removeAt(position) {
+    const node = this._get(position)
+    return this._remove(node)
   }
 
-  /**
-   * 判断是否存在指定元素
-   * @param any node 
-   */
-  contains(node) {
-    return this.indexOf(node) > -1
-  }
-
-  /**
-   * 将元素插入到指定位置
-   * @param number position 
-   * @param any node 
-   */
-  insert(position, node) {
+  _insert(position, node) {
     const linkItem = new LinkItem(node)
     if (position >= 0 && position <= this.length) {
       if (position === 0) {
@@ -120,11 +69,7 @@ class LinkedList {
     }
   }
 
-  /**
-   * 删除元素(第一个)
-   * @param any node 
-   */
-  remove(node) {
+  _remove(node) {
     if (this.length !== 0) {
       let current = this.head
       let prev = null
@@ -145,61 +90,41 @@ class LinkedList {
     return node
   }
 
-  /**
-   * 获取元素位置(第一个)
-   * @param any node 
-   */
-  indexOf(node) {
-    let current = this.head
-    let index = 0
-    while (current.value !== node && current.next) {
-      current = current.next
-      index++
-    }
-    if (current.value === node) {
-      return index
-    } else {
-      return -1
-    }
-  }
-
-  /**
-   * 转成字符串
-   */
-  toString() {
-    return this.toArray().join(',')
-  }
-
-  /**
-   * 转成数组
-   */
-  toArray() {
-    const list = []
-    if (this.length === 0) {
-      return list
-    } else {
+  _get(position) {
+    if (position >= 0 && position <= this.length) {
       let current = this.head
-      list.push(current.value)
-      while (current.next) {
+      let index = 0
+      while (index < position && current) {
         current = current.next
-        list.push(current.value)
+        index++
       }
-      return list
+
+      return current && current.value
+    } else {
+      return null
     }
   }
+
 }
 
+/**
+ * 游戏主类
+ */
 class Game {
   constructor() {
     this.$stage = document.querySelector('#stage')
     this.food = []
-    this.speed = 100
+    this.speed = 150
     this.snake = new Snake(this.$stage)
     this.addFood()
     this.handleKeyDown = this.handleKeyDown.bind(this)
     window.addEventListener('keydown', this.handleKeyDown)
   }
 
+  /**
+   * 键盘事件
+   * @param {*} e 
+   */
   handleKeyDown(e) {
     const { direction } = this.snake
     const keyCode = e.keyCode
@@ -217,38 +142,72 @@ class Game {
     }
   }
 
+  /**
+   * 放蛇(游戏开始)
+   */
   go() {
+    // 判断上次走步有没有吃食物
     const $head = this.snake.body.head.value
     const { x: bx, y: by } = this.getPosition($head)
     const $food = this.food.find(($item) => {
-      const {x: fx, y: fy} = this.getPosition($item)
+      const { x: fx, y: fy } = this.getPosition($item)
       return fx === bx && fy === by
     })
     this.snake.move(!!$food)
     if (!!$food) {
+      const snakeLen = this.snake.body.length
+      // 每增加5节, 就加速一次
+      if (snakeLen % 5 === 0) {
+        this.incSpeed()
+      }
+      // 如果吃到了, 就添加新食物
       this.food.length = 0
       this.$stage.removeChild($food)
       this.addFood()
     }
-    const stageSize = this.getSize(this.$stage)
-    const { x, y } = this.getPosition($head)
-    if (x >= 0 && x <= stageSize.width - this.snake.nodeSize.width && y >= 0 && y <= stageSize.height - this.snake.nodeSize.height) {
+
+    if (this.isAlive()) {
       setTimeout(() => {
         this.go()
       }, this.speed)
     } else {
-      alert('失败!')
+      alert('小蛇已死, 埋了吧。')
     }
   }
 
+  isAlive() {
+    const $head = this.snake.body.head.value
+    const { x: headX, y: headY } = this.getPosition($head)
+    const stageSize = this.getSize(this.$stage)
+    // 撞墙而死
+    if (headX < 0 || headX > stageSize.width - this.snake.nodeSize.width || headY < 0 || headY > stageSize.height - this.snake.nodeSize.height) {
+      return false
+    }
+    // 撞自己而死
+    let current = this.snake.body.head
+    while (current) {
+      const $node = current.value
+      const { x: nodeX, y: nodeY } = this.getPosition($node)
+      if ($node !== $head && nodeX === headX && nodeY === headY) {
+        return false
+      }
+      current = current.next
+    }
+
+    return true
+  }
+
   incSpeed() {
-    this.speed = Math.min(2000, this.speed + 100)
+    this.speed = Math.max(10, this.speed - 10)
   }
 
   decSpeed() {
-    this.speed = Math.max(100, this.speed - 100)
+    this.speed = Math.min(2000, this.speed + 10)
   }
 
+  /**
+   * 随机在页面中投食
+   */
   addFood() {
     const { x, y } = this.computeFoodPosition()
     const $food = document.createElement('div')
@@ -302,19 +261,21 @@ class Game {
   }
 }
 
+/**
+ * 小蛇类
+ */
 class Snake {
   constructor($stage) {
     this.$stage = $stage
     this.direction = 39
-
     this.nodeSize = {
       width: 10,
       height: 10
     }
-    this.body = new LinkedList([
-      this.addNode(this.nodeSize.width * 2, this.nodeSize.height),
-      this.addNode(this.nodeSize.width, this.nodeSize.height),
-    ])
+
+    this.body = new LinkedList([10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((num) => {
+      return this.addNode(this.nodeSize.width * num, this.nodeSize.height)
+    }))
   }
 
   addNode(x, y) {
@@ -349,6 +310,7 @@ class Snake {
     }
     this.body.addFirst(this.addNode(nextX, nextY))
     if (!eat) {
+      // 如果没有吃到食物, 就去掉一节
       this.$stage.removeChild(this.body.removeLast())
     }
   }
