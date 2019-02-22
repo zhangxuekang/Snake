@@ -1,4 +1,69 @@
+const CHANGECOLOR = false
+const FLASH = CHANGECOLOR && false
+const MOVE = CHANGECOLOR && false
+const BOOM = CHANGECOLOR && false
 const DIRECTIONS = [37, 38, 39, 40] // 移动方向
+const SNAKECOLOR = [
+  'rgb(153, 0, 0)',
+  'rgb(180, 95, 6)',
+  'rgb(191, 144, 0)',
+  'rgb(56, 118, 29)',
+  'rgb(19, 79, 92)',
+  'rgb(17, 85, 204)',
+  'rgb(11, 83, 148)',
+  'rgb(53, 28, 117)',
+  'rgb(116, 27, 71)',
+  'rgb(91, 15, 0)',
+  'rgb(152, 0, 0)',
+  'rgb(255, 0, 0)',
+  'rgb(255, 153, 0)',
+  'rgb(255, 255, 0)',
+  'rgb(0, 255, 0)',
+  'rgb(0, 255, 255)',
+  'rgb(74, 134, 232)',
+  'rgb(0, 0, 255)',
+  'rgb(153, 0, 255)',
+  'rgb(255, 0, 255)'
+]
+const THEME = {
+  bodyColor: '#555',
+  stageColor: '#fff',
+  stageBorder: '#555',
+  snakeNode: '#0d3634',
+  food: '#d1a85b'
+}
+const $head = document.querySelector('head')
+const $body = document.querySelector('body')
+const style = `
+body{background-color:${THEME.bodyColor}}
+#stage *, #grade *{margin:0;padding:0}
+#stage{width:500px;height:500px;border:1px solid ${THEME.stageBorder};margin:0 auto;position:relative;background-color:${THEME.stageColor}}
+#grade{width:500px;height:20px;margin:0 auto;position:relative;background-color:${THEME.stageColor};line-height:20px;text-align:center;margin-bottom:4px;font-size:12px}
+.number{display:inline-block;width:50px}
+.node{position:absolute;background-color:${THEME.snakeNode}}
+.food{position:absolute;background-color:${THEME.food};border-radius:50%}
+`
+const $style = document.createElement('style')
+$style.innerHTML = style
+$head.appendChild($style)
+const $stage = document.createElement('div')
+const $grade = document.createElement('div')
+$stage.setAttribute('id', 'stage')
+$grade.setAttribute('id', 'grade')
+$body.appendChild($grade)
+$body.appendChild($stage)
+if (CHANGECOLOR) {
+  const $style_s = document.createElement('style')
+  $style_s.setAttribute('id', 'snake-color')
+  let style_s = ''
+  let i = 0
+  while (i < 10000) {
+    style_s += `.n-${i}{background-color:${SNAKECOLOR[Math.floor(Math.random() * SNAKECOLOR.length)]}}`
+    i++
+  }
+  $style_s.innerHTML = style_s
+  $body.appendChild($style_s)
+}
 
 /**
  * 链表节点类
@@ -146,6 +211,8 @@ class Game {
    * 放蛇(游戏开始)
    */
   go() {
+    const $grade = document.querySelector('#grade')
+    $grade.innerHTML = `小蛇长度: <span class='number'>${this.snake.body.length}</span>  吃下的食物: <span class='number'>${this.snake.food}</span>  步数: <span class='number'>${this.snake.step}</span>  速度: <span class='number'>${this.speed}</span>`
     // 判断上次走步有没有吃食物
     const $head = this.snake.body.head.value
     const { x: bx, y: by } = this.getPosition($head)
@@ -272,7 +339,8 @@ class Snake {
       width: 10,
       height: 10
     }
-
+    this.step = 1
+    this.food = 0
     this.body = new LinkedList([10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((num) => {
       return this.addNode(this.nodeSize.width * num, this.nodeSize.height)
     }))
@@ -312,6 +380,47 @@ class Snake {
     if (!eat) {
       // 如果没有吃到食物, 就去掉一节
       this.$stage.removeChild(this.body.removeLast())
+    } else {
+      this.food++
+    }
+    this.updateColorClass()
+    this.step++
+  }
+
+  updateColorClass() {
+    const snake = this.body
+    const len = snake.length
+    let current = snake.head
+    let prevNum
+    let index = 0
+    const nowNum = Math.floor(Math.random() * len)
+    while (current) {
+      const $node = current.value
+      this._removeClass($node, /^d-\d+$/)
+      this._addClass($node, 'd-' + index)
+      let num
+      if (FLASH) {
+        this._removeClass($node, /^n-\d+$/)
+        num = Math.floor(Math.random() * len)
+        this._addClass($node, 'n-' + num)
+      } else if (MOVE) {
+        if (index === 0) {
+          this._removeClass($node, /^n-\d+$/)
+          this._addClass($node, 'n-' + nowNum)
+        } else {
+          this._addClass($node, 'n-' + prevNum)
+        }
+        const flag = /\bn-(\n+)\b/.exec($node.getAttribute('class'))
+        prevNum = flag ? parseInt(flag[1], 10) : 0
+      } else if (BOOM) {
+        this._removeClass($node, /^n-\d+$/)
+        this._addClass($node, 'n-' + nowNum)
+      } else {
+        this._removeClass($node, /^n-\d+$/)
+        this._addClass($node, 'n-' + index)
+      }
+      current = current.next
+      index++
     }
   }
 
@@ -325,6 +434,17 @@ class Snake {
     const x = parseFloat($node.style.left)
     const y = parseFloat($node.style.top)
     return { x, y }
+  }
+
+  _addClass($e, className) {
+    const classString = $e.getAttribute('class')
+    $e.setAttribute('class', classString ? classString + ' ' + className : className)
+  }
+
+  _removeClass($e, nameReg) {
+    let classArr = $e.getAttribute('class').split(' ')
+    classArr = classArr.filter(item => !nameReg.test(item))
+    $e.setAttribute('class', classArr.join(' '))
   }
 
 }
