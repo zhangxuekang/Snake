@@ -157,47 +157,38 @@ class Game {
     this.snake = new Snake(this.$stage)
     this.addFood()
     this.handleKeyDown = this.handleKeyDown.bind(this)
+    this.handleBtnClick = this.handleBtnClick.bind(this)
     window.addEventListener('keydown', this.handleKeyDown)
-    this.addBtnClick()
+    window.addEventListener('mousedown', this.handleBtnClick)
   }
 
-  addBtnClick() {
-    const btn = document.querySelector('#btn')
-    btn.addEventListener('click', (e) => {
-      const target = e.target
-      const name = target.getAttribute('class')
-      if (name) {
-        switch (true) {
-          case name.indexOf('up') > -1:
-            this.snake.turn(38)
-            break
-          case name.indexOf('right') > -1:
-            this.snake.turn(39)
-            break
-          case name.indexOf('down') > -1:
-            this.snake.turn(40)
-            break
-          case name.indexOf('left') > -1:
-            this.snake.turn(37)
-            break
-        }
+  handleBtnClick(e) {
+    const target = e.target
+    const name = target.getAttribute('class')
+    if (name) {
+      switch (true) {
+        case name.indexOf('up') > -1:
+          this.snake.turn(38)
+          break
+        case name.indexOf('right') > -1:
+          this.snake.turn(39)
+          break
+        case name.indexOf('down') > -1:
+          this.snake.turn(40)
+          break
+        case name.indexOf('left') > -1:
+          this.snake.turn(37)
+          break
       }
-    })
+    }
   }
-
   /**
    * 键盘事件
    * @param {*} e 
    */
   handleKeyDown(e) {
-    const { direction } = this.snake
     const keyCode = e.keyCode
-    if (keyCode === 37 && direction === 39
-      || keyCode === 38 && direction === 40
-      || keyCode === 39 && direction === 37
-      || keyCode === 40 && direction === 38) {
-      return
-    } else if (~DIRECTIONS.indexOf(keyCode)) { // 转向
+    if (~DIRECTIONS.indexOf(keyCode)) { // 转向
       this.snake.turn(keyCode)
     } else if (keyCode === 187) { // +快
       this.incSpeed()
@@ -237,8 +228,21 @@ class Game {
         this.go()
       }, this.speed)
     } else {
-      // alert('小蛇已死, 埋了吧。')
+      alert('小蛇已死, 埋了吧。')
+      this.bury()
     }
+  }
+
+  // 埋葬
+  bury() {
+    let $node = this.snake.body.removeLast()
+    while($node) {
+      this.$stage.removeChild($node)
+      $node = this.snake.body.removeLast()
+    }
+    this.food.length = 0
+    this.$stage.innerHTML = ''
+    newGame()
   }
 
   isAlive() {
@@ -424,7 +428,15 @@ class Snake {
   }
 
   turn(type) {
+    const direction = this.direction
+    console.log(direction, type, '<-------zxk')
     if (~DIRECTIONS.indexOf(type)) {
+      if (type === 37 && direction === 39
+        || type === 38 && direction === 40
+        || type === 39 && direction === 37
+        || type === 40 && direction === 38) {
+        return
+      }
       this.direction = type
     }
   }
@@ -448,5 +460,10 @@ class Snake {
 
 }
 
-const game = new Game()
-game.go()
+function newGame () {
+  const game = new Game()
+  game.go()
+}
+
+newGame()
+
