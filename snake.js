@@ -1,7 +1,4 @@
-const CHANGECOLOR = false
-const FLASH = CHANGECOLOR && false
-const MOVE = CHANGECOLOR && false
-const BOOM = CHANGECOLOR && false
+const CHANGECOLOR = true
 const DIRECTIONS = [37, 38, 39, 40] // 移动方向
 const SNAKECOLOR = [
   'rgb(153, 0, 0)',
@@ -158,6 +155,7 @@ class Game {
     this.addFood()
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.handleBtnClick = this.handleBtnClick.bind(this)
+    this.addThemeEvent = this.addThemeEvent.bind(this)
     window.addEventListener('keydown', this.handleKeyDown)
     window.addEventListener('mousedown', this.handleBtnClick)
   }
@@ -188,12 +186,34 @@ class Game {
    */
   handleKeyDown(e) {
     const keyCode = e.keyCode
-    if (~DIRECTIONS.indexOf(keyCode)) { // 转向
-      this.snake.turn(keyCode)
-    } else if (keyCode === 187) { // +快
-      this.incSpeed()
-    } else if (keyCode === 189) { // -慢
-      this.decSpeed()
+    switch (true) {
+      case DIRECTIONS.indexOf(keyCode) > -1:
+        this.snake.turn(keyCode)
+        break
+      case keyCode === 187:
+        this.incSpeed()
+        break
+      case keyCode === 189:
+        this.decSpeed()
+        break
+      case keyCode === 81:
+        this.snake.MOVE = true
+        this.snake.FLASH = false
+        this.snake.BOOM = false
+        break
+      case keyCode === 87:
+        this.snake.FLASH = true
+        this.snake.MOVE = false
+        this.snake.BOOM = false
+        this.decSpeed()
+        break
+      case keyCode === 69:
+        this.snake.BOOM = true
+        this.snake.FLASH = false
+        this.snake.MOVE = false
+        break
+      case keyCode === 65:
+        this.snake.COLOR = !this.snake.COLOR
     }
   }
 
@@ -236,7 +256,7 @@ class Game {
   // 埋葬
   bury() {
     let $node = this.snake.body.removeLast()
-    while($node) {
+    while ($node) {
       this.$stage.removeChild($node)
       $node = this.snake.body.removeLast()
     }
@@ -336,6 +356,10 @@ class Game {
  */
 class Snake {
   constructor($stage) {
+    this.FLASH = false
+    this.BOOM = false
+    this.MOVE = false
+    this.COLOR = false
     this.$stage = $stage
     this.direction = 39
     this.nodeSize = {
@@ -402,25 +426,29 @@ class Snake {
       this._removeClass($node, /^d-\d+$/)
       this._addClass($node, 'd-' + index)
       let num
-      if (FLASH) {
+      if (!this.COLOR) {
         this._removeClass($node, /^n-\d+$/)
-        num = Math.floor(Math.random() * len)
-        this._addClass($node, 'n-' + num)
-      } else if (MOVE) {
-        if (index === 0) {
+      } else {
+        if (this.FLASH) {
+          this._removeClass($node, /^n-\d+$/)
+          num = Math.floor(Math.random() * len)
+          this._addClass($node, 'n-' + num)
+        } else if (this.MOVE) {
+          if (index === 0) {
+            this._removeClass($node, /^n-\d+$/)
+            this._addClass($node, 'n-' + nowNum)
+          } else {
+            this._addClass($node, 'n-' + prevNum)
+          }
+          const flag = /\bn-(\n+)\b/.exec($node.getAttribute('class'))
+          prevNum = flag ? parseInt(flag[1], 10) : 0
+        } else if (this.BOOM) {
           this._removeClass($node, /^n-\d+$/)
           this._addClass($node, 'n-' + nowNum)
         } else {
-          this._addClass($node, 'n-' + prevNum)
+          this._removeClass($node, /^n-\d+$/)
+          this._addClass($node, 'n-' + index)
         }
-        const flag = /\bn-(\n+)\b/.exec($node.getAttribute('class'))
-        prevNum = flag ? parseInt(flag[1], 10) : 0
-      } else if (BOOM) {
-        this._removeClass($node, /^n-\d+$/)
-        this._addClass($node, 'n-' + nowNum)
-      } else {
-        this._removeClass($node, /^n-\d+$/)
-        this._addClass($node, 'n-' + index)
       }
       current = current.next
       index++
@@ -429,7 +457,6 @@ class Snake {
 
   turn(type) {
     const direction = this.direction
-    console.log(direction, type, '<-------zxk')
     if (~DIRECTIONS.indexOf(type)) {
       if (type === 37 && direction === 39
         || type === 38 && direction === 40
@@ -460,7 +487,7 @@ class Snake {
 
 }
 
-function newGame () {
+function newGame() {
   const game = new Game()
   game.go()
 }
