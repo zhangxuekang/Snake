@@ -25,33 +25,7 @@ const SNAKECOLOR = [
   'rgb(153, 0, 255)',
   'rgb(255, 0, 255)'
 ]
-const THEME = {
-  bodyColor: '#555',
-  stageColor: '#fff',
-  stageBorder: '#555',
-  snakeNode: '#0d3634',
-  food: '#d1a85b'
-}
 const $head = document.querySelector('head')
-const $body = document.querySelector('body')
-const style = `
-body{background-color:${THEME.bodyColor}}
-#stage *, #grade *{margin:0;padding:0}
-#stage{width:500px;height:500px;border:1px solid ${THEME.stageBorder};margin:0 auto;position:relative;background-color:${THEME.stageColor}}
-#grade{width:500px;height:20px;margin:0 auto;position:relative;background-color:${THEME.stageColor};line-height:20px;text-align:center;margin-bottom:4px;font-size:12px}
-.number{display:inline-block;width:50px}
-.node{position:absolute;background-color:${THEME.snakeNode}}
-.food{position:absolute;background-color:${THEME.food};border-radius:50%}
-`
-const $style = document.createElement('style')
-$style.innerHTML = style
-$head.appendChild($style)
-const $stage = document.createElement('div')
-const $grade = document.createElement('div')
-$stage.setAttribute('id', 'stage')
-$grade.setAttribute('id', 'grade')
-$body.appendChild($grade)
-$body.appendChild($stage)
 if (CHANGECOLOR) {
   const $style_s = document.createElement('style')
   $style_s.setAttribute('id', 'snake-color')
@@ -62,7 +36,7 @@ if (CHANGECOLOR) {
     i++
   }
   $style_s.innerHTML = style_s
-  $body.appendChild($style_s)
+  $head.appendChild($style_s)
 }
 
 /**
@@ -184,6 +158,31 @@ class Game {
     this.addFood()
     this.handleKeyDown = this.handleKeyDown.bind(this)
     window.addEventListener('keydown', this.handleKeyDown)
+    this.addBtnClick()
+  }
+
+  addBtnClick() {
+    const btn = document.querySelector('#btn')
+    btn.addEventListener('click', (e) => {
+      const target = e.target
+      const name = target.getAttribute('class')
+      if (name) {
+        switch (true) {
+          case name.indexOf('up') > -1:
+            this.snake.turn(38)
+            break
+          case name.indexOf('right') > -1:
+            this.snake.turn(39)
+            break
+          case name.indexOf('down') > -1:
+            this.snake.turn(40)
+            break
+          case name.indexOf('left') > -1:
+            this.snake.turn(37)
+            break
+        }
+      }
+    })
   }
 
   /**
@@ -212,7 +211,7 @@ class Game {
    */
   go() {
     const $grade = document.querySelector('#grade')
-    $grade.innerHTML = `小蛇长度: <span class='number'>${this.snake.body.length}</span>  吃下的食物: <span class='number'>${this.snake.food}</span>  步数: <span class='number'>${this.snake.step}</span>  速度: <span class='number'>${this.speed}</span>`
+    $grade.innerHTML = `小蛇长度: <span class='number'>${this.snake.body.length}</span>  吃下的食物: <span class='number'>${this.snake.food}</span>  步数: <span class='number'>${this.snake.step}</span>  速度: <span class='number'>${550 - this.speed}</span>`
     // 判断上次走步有没有吃食物
     const $head = this.snake.body.head.value
     const { x: bx, y: by } = this.getPosition($head)
@@ -238,7 +237,7 @@ class Game {
         this.go()
       }, this.speed)
     } else {
-      alert('小蛇已死, 埋了吧。')
+      // alert('小蛇已死, 埋了吧。')
     }
   }
 
@@ -269,7 +268,7 @@ class Game {
   }
 
   decSpeed() {
-    this.speed = Math.min(2000, this.speed + 10)
+    this.speed = Math.min(500, this.speed + 10)
   }
 
   /**

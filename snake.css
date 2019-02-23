@@ -1,0 +1,86 @@
+* {
+  padding: 0;
+  margin: 0
+}
+
+body {
+  background-color: #555555
+}
+
+#stage {
+  width: 500px;
+  height: 500px;
+  border: 1px solid #555555;
+  margin: 0 auto;
+  position: relative;
+  background-color: #ffffff
+}
+
+#grade {
+  width: 540px;
+  height: 20px;
+  margin: 0 auto;
+  position: relative;
+  line-height: 20px;
+  text-align: center;
+  margin-bottom: 4px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #d1a85b;
+}
+
+.number {
+  display: inline-block;
+  width: 50px;
+  text-align: left
+}
+
+.node {
+  position: absolute;
+  background-color: #0d3634
+}
+
+.food {
+  position: absolute;
+  background-color: #d1a85b;
+  border-radius: 50%
+}
+
+#btn {
+  width: 210px;
+  height: 210px;
+  position: absolute;
+  top: 540px;
+  left: 350px;
+}
+
+.up,
+.left,
+.down,
+.right {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background-color: #693030;
+  border-radius: 40%
+}
+
+.up {
+  left: 33.3%;
+  top: 0;
+}
+
+.down {
+  left: 33.3%;
+  top: 66.6%;
+}
+
+.left {
+  left: 0;
+  top: 33.3%;
+}
+
+.right {
+  left: 66.6%;
+  top: 33.3%;
+}
