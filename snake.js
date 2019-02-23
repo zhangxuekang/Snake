@@ -155,7 +155,6 @@ class Game {
     this.addFood()
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.handleBtnClick = this.handleBtnClick.bind(this)
-    this.addThemeEvent = this.addThemeEvent.bind(this)
     window.addEventListener('keydown', this.handleKeyDown)
     window.addEventListener('mousedown', this.handleBtnClick)
   }
